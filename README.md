@@ -44,8 +44,25 @@ below for what to do with that domain.
 
 ## Setup
 
-Click **⚙ Settings** and paste your BookManager API key. It's saved in
-`localStorage` (per-browser, not synced anywhere).
+Click **⚙ Settings** and paste your BookManager API key. A Google Books
+API key is optional (see below). Both are saved in `localStorage`
+(per-browser, not synced anywhere).
+
+### Getting a Google Books API key (optional but recommended)
+
+Unauthenticated requests to Google Books share a fairly low per-IP quota
+and can return `429` errors under moderate traffic — the anonymous key
+lifts that. To get one:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/),
+   create (or pick) a project.
+2. Enable the **Books API** under APIs & Services.
+3. Create an API key under **Credentials**.
+4. Restrict it to **HTTP referrers** and add your domain(s) (e.g.
+   `localhost`, `*.up.railway.app`, your custom domain) — this key is
+   used client-side and is visible in the page, so restrict it the same
+   way you'd restrict the BookManager key by domain.
+5. Paste it into Settings on this site.
 
 ## Important: domain whitelisting
 
@@ -60,9 +77,8 @@ BookManager to add whichever domain(s) you'll actually deploy to
 ## Notes / limitations
 
 - Google Books' unauthenticated endpoint has a modest per-IP rate limit;
-  if searches start failing with a 429, that's Google throttling, not a
-  bug. For heavier use, get a free Google Cloud API key and append
-  `&key=YOUR_KEY` to the fetch URL in `searchBooks`.
+  if searches start failing with a 429, add a Google Books API key in
+  Settings (see above) — that's Google throttling, not a bug.
 - Books with no ISBN in Google's data (some obscure/older editions) will
   show a disabled "Check Local Availability" button, since BookManager's
   API needs a product code to look anything up.

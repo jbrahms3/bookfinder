@@ -1,5 +1,6 @@
 const STORAGE_KEYS = {
   apiKey: "sl_api_key",
+  googleApiKey: "sl_google_api_key",
   distanceKm: "sl_distance_km",
   location: "sl_location",
 };
@@ -15,6 +16,14 @@ function getApiKey() {
 
 function setApiKey(key) {
   localStorage.setItem(STORAGE_KEYS.apiKey, key);
+}
+
+function getGoogleApiKey() {
+  return localStorage.getItem(STORAGE_KEYS.googleApiKey) || "";
+}
+
+function setGoogleApiKey(key) {
+  localStorage.setItem(STORAGE_KEYS.googleApiKey, key);
 }
 
 function getDistanceKm() {
@@ -131,7 +140,9 @@ document.getElementById("settings-toggle").addEventListener("click", () => {
 
 document.getElementById("save-settings").addEventListener("click", () => {
   const apiKey = document.getElementById("api-key-input").value.trim();
+  const googleApiKey = document.getElementById("google-api-key-input").value.trim();
   setApiKey(apiKey);
+  setGoogleApiKey(googleApiKey);
   const status = document.getElementById("settings-status");
   status.textContent = "Saved.";
   setTimeout(() => (status.textContent = ""), 2000);
@@ -153,7 +164,10 @@ function searchBooks(query) {
   const looksLikeIsbn = /^[\dXx]{10}$|^\d{13}$/.test(digitsOnly);
   const q = looksLikeIsbn ? `isbn:${digitsOnly}` : query;
 
-  fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20`)
+  const googleApiKey = getGoogleApiKey();
+  const keyParam = googleApiKey ? `&key=${encodeURIComponent(googleApiKey)}` : "";
+
+  fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20${keyParam}`)
     .then((res) => {
       if (!res.ok) throw new Error(`Google Books API error (${res.status})`);
       return res.json();
@@ -285,6 +299,7 @@ document.getElementById("close-availability").addEventListener("click", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("api-key-input").value = getApiKey();
+  document.getElementById("google-api-key-input").value = getGoogleApiKey();
   document.getElementById("distance-km").value = String(getDistanceKm());
   renderLocationStatus(getLocation());
 });
