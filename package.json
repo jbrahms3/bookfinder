@@ -1,0 +1,13 @@
+{
+  "name": "bookfinder",
+  "version": "1.0.0",
+  "description": "Search for books and find them at nearby independent bookstores.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

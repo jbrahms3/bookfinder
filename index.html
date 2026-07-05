@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shop Local Books — Find Books Near You</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <h1>📚 Shop Local Books</h1>
+        <p>Search for any book, then see if it's in stock at a store near you.</p>
+      </div>
+      <button id="settings-toggle" class="link-btn" type="button">⚙ Settings</button>
+    </header>
+
+    <section id="settings-panel" class="panel" hidden>
+      <h2>Settings</h2>
+      <label for="api-key-input">BookManager API Key</label>
+      <input id="api-key-input" type="text" placeholder="Your BookManager API key" />
+      <button id="save-settings" type="button">Save</button>
+      <p id="settings-status" class="status"></p>
+    </section>
+
+    <section class="panel search-panel">
+      <form id="search-form">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search by title, author, or ISBN"
+          required
+        />
+        <button type="submit">Search</button>
+      </form>
+
+      <div class="location-row">
+        <label for="distance-km">Search radius</label>
+        <select id="distance-km">
+          <option value="10">10 km</option>
+          <option value="25">25 km</option>
+          <option value="50" selected>50 km</option>
+          <option value="100">100 km</option>
+          <option value="200">200 km</option>
+          <option value="500">500 km</option>
+        </select>
+        <button id="use-location" type="button">Use My Location</button>
+        <span id="location-status" class="status">Location not set</span>
+      </div>
+    </section>
+
+    <main>
+      <section id="results" class="results-grid" aria-live="polite"></section>
+    </main>
+
+    <section id="availability-section" class="panel" hidden>
+      <button id="close-availability" class="link-btn" type="button">✕ Close</button>
+      <h2>Availability for <span id="availability-title"></span></h2>
+      <div id="tbm-widget-container"></div>
+    </section>
+
+    <footer>
+      <p>Book search powered by Google Books. Local availability powered by BookManager.</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

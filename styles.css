@@ -1,0 +1,257 @@
+:root {
+  --accent: #2a6f4f;
+  --accent-dark: #1e5238;
+  --bg: #f6f5f1;
+  --card-bg: #ffffff;
+  --border: #e0ddd5;
+  --text: #22201c;
+  --muted: #6b675f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.site-header {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #fff;
+  padding: 28px 20px;
+  position: relative;
+  text-align: center;
+}
+
+.site-header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.site-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.link-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#settings-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.panel {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 18px 22px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 17px;
+}
+
+.panel label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.panel input[type="text"],
+.panel input[type="search"] {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+#settings-panel button,
+#search-form button {
+  margin-top: 10px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#settings-panel button:hover,
+#search-form button:hover {
+  background: var(--accent-dark);
+}
+
+#search-form {
+  display: flex;
+  gap: 10px;
+}
+
+#search-form input {
+  flex: 1;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.location-row label {
+  margin: 0;
+}
+
+.location-row select {
+  padding: 7px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+#use-location {
+  padding: 7px 12px;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#use-location:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.status {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.status.error {
+  color: #b3372c;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px 30px;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.book-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-cover {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  background: #f0efe9;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.book-cover.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.book-details h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.book-authors {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.book-meta {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.book-code {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.book-details button {
+  margin-top: auto;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.book-details button:disabled {
+  background: #ccc9c1;
+  cursor: not-allowed;
+}
+
+.book-details button:not(:disabled):hover {
+  background: var(--accent-dark);
+}
+
+#availability-section {
+  position: relative;
+}
+
+#close-availability {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 20px;
+}
