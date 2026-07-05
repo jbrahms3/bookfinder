@@ -338,7 +338,7 @@ function storeRow(store) {
   return { row, badge };
 }
 
-async function scanStores() {
+async function scanStores(includeChains = false) {
   const location = getLocation();
   const status = document.getElementById("location-status");
   if (!location) {
@@ -352,25 +352,35 @@ async function scanStores() {
   list.innerHTML = '<p class="status">Finding bookstores near you…</p>';
 
   let stores;
+  let chainsFiltered = 0;
   try {
-    const res = await fetch(
-      `/api/stores?lat=${location.latitude}&lon=${location.longitude}&radius_km=${getDistanceKm()}`
-    );
+    const params = new URLSearchParams({
+      lat: location.latitude,
+      lon: location.longitude,
+      radius_km: getDistanceKm(),
+    });
+    if (includeChains) params.set("include_chains", "1");
+    const res = await fetch(`/api/stores?${params}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     stores = data.stores;
+    chainsFiltered = data.chainsFiltered || 0;
   } catch (error) {
     list.innerHTML = `<p class="status error">Store lookup failed: ${error.message}</p>`;
     return;
   }
 
   if (!stores.length) {
-    list.innerHTML =
-      '<p class="status">No bookstores found in OpenStreetMap within your search radius.</p>';
+    const empty = includeChains
+      ? "No bookstores found in OpenStreetMap within your search radius."
+      : "No independent bookstores found nearby.";
+    list.innerHTML = `<p class="status">${empty}</p>`;
+    if (!includeChains && chainsFiltered > 0) list.appendChild(chainToggle(chainsFiltered));
     return;
   }
 
   list.innerHTML = "";
+  if (!includeChains && chainsFiltered > 0) list.appendChild(chainToggle(chainsFiltered));
   const checks = stores.map((store) => {
     const { row, badge } = storeRow(store);
     list.appendChild(row);
@@ -407,7 +417,22 @@ async function scanStores() {
   await Promise.allSettled(checks);
 }
 
-document.getElementById("scan-stores").addEventListener("click", scanStores);
+function chainToggle(count) {
+  const note = document.createElement("p");
+  note.className = "chain-note";
+  note.textContent = `${count} chain ${count === 1 ? "store" : "stores"} hidden · `;
+  const link = document.createElement("a");
+  link.href = "#";
+  link.textContent = "show them";
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    scanStores(true);
+  });
+  note.appendChild(link);
+  return note;
+}
+
+document.getElementById("scan-stores").addEventListener("click", () => scanStores(false));
 
 // ---- init -------------------------------------------------
 

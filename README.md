@@ -28,6 +28,10 @@ works regardless of which POS/inventory system a store uses:
 
 1. `GET /api/stores` finds bookstores near you via OpenStreetMap's
    Overpass API (free, no API key) — name, distance, website, phone.
+   **Independent stores only by default**: chains are detected via OSM's
+   `brand`/`brand:wikidata` tags plus a name blocklist (Barnes & Noble,
+   Books-A-Million, Deseret Book, etc.) and filtered out. Pass
+   `include_chains=1` (or click "show them" in the UI) to keep them.
 2. `GET /api/availability` checks each store's website for the book,
    using platform adapters in order:
    - **Shopify** — public `search/suggest.json`; tries the ISBN, then

@@ -24,6 +24,36 @@ const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 const MAX_STORES = 15;
 const MAX_SCAN_RADIUS_KM = 100;
 
+// Name fragments used to flag chains when OSM lacks a brand tag. Matched
+// case-insensitively against the store name. Kept deliberately small —
+// the primary chain signal is OSM's brand/brand:wikidata tag.
+const CHAIN_NAME_PATTERNS = [
+  "barnes & noble",
+  "barnes and noble",
+  "books-a-million",
+  "booksamillion",
+  "waterstones",
+  "indigo",
+  "chapters",
+  "coles",
+  "half price books",
+  "2nd & charles",
+  "deseret book",
+  "seagull book",
+  "family christian",
+  "lifeway",
+  "walmart",
+  "target",
+  "costco",
+];
+
+function isChain(tags) {
+  // OSM convention: chains carry a brand / brand:wikidata / operator tag.
+  if (tags.brand || tags["brand:wikidata"] || tags.brand_wikidata) return true;
+  const name = (tags.name || "").toLowerCase();
+  return CHAIN_NAME_PATTERNS.some((frag) => name.includes(frag));
+}
+
 // ---------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------
@@ -106,7 +136,10 @@ async function handleStores(query, res) {
   }
   radiusKm = Math.min(Math.max(radiusKm, 1), MAX_SCAN_RADIUS_KM);
 
-  const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+  // Independents only by default; pass include_chains=1 to keep chains.
+  const includeChains = query.get("include_chains") === "1";
+
+  const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm},${includeChains}`;
   const cached = storesCache.get(cacheKey);
   if (cached && Date.now() - cached.at < STORES_CACHE_MS) {
     return sendJSON(res, 200, cached.data);
@@ -145,7 +178,7 @@ async function handleStores(query, res) {
     return sendJSON(res, 502, { error: `Store lookup failed: ${err.message}` });
   }
 
-  const stores = (data.elements || [])
+  const mapped = (data.elements || [])
     .map((el) => {
       const elLat = el.lat ?? el.center?.lat;
       const elLon = el.lon ?? el.center?.lon;
@@ -161,14 +194,25 @@ async function handleStores(query, res) {
         website,
         phone: tags.phone || tags["contact:phone"] || null,
         secondHand: tags.second_hand === "yes" || tags.second_hand === "only",
+        isChain: isChain(tags),
         distanceKm: Math.round(haversineKm(lat, lon, elLat, elLon) * 10) / 10,
       };
     })
-    .filter(Boolean)
+    .filter(Boolean);
+
+  const chainsFiltered = mapped.filter((s) => s.isChain).length;
+  const stores = mapped
+    .filter((s) => includeChains || !s.isChain)
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, MAX_STORES);
 
-  const payload = { stores, source: "openstreetmap", radiusKm };
+  const payload = {
+    stores,
+    source: "openstreetmap",
+    radiusKm,
+    includeChains,
+    chainsFiltered,
+  };
   storesCache.set(cacheKey, { at: Date.now(), data: payload });
   sendJSON(res, 200, payload);
 }
