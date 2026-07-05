@@ -246,6 +246,8 @@ function buildOptionsAttr(options) {
   return `{${entries.join(", ")}}`;
 }
 
+let currentBook = null;
+
 function checkAvailability(book) {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -253,6 +255,9 @@ function checkAvailability(book) {
     document.getElementById("settings-panel").hidden = false;
     return;
   }
+
+  currentBook = book;
+  document.getElementById("store-list").innerHTML = "";
 
   const location = getLocation();
   const distanceKm = getDistanceKm();
@@ -293,7 +298,116 @@ function checkAvailability(book) {
 document.getElementById("close-availability").addEventListener("click", () => {
   document.getElementById("availability-section").hidden = true;
   document.getElementById("tbm-widget-container").innerHTML = "";
+  document.getElementById("store-list").innerHTML = "";
 });
+
+// ---- nearby store website scan -------------------------------------------
+
+const STATUS_LABELS = {
+  in_stock: { text: "In stock", cls: "ok" },
+  out_of_stock: { text: "Out of stock", cls: "bad" },
+  listed: { text: "Listed on site", cls: "maybe" },
+  listed_unknown: { text: "Listed — stock unclear", cls: "maybe" },
+  not_found: { text: "Not on their site", cls: "muted" },
+  unknown: { text: "Couldn't check site", cls: "muted" },
+};
+
+function storeRow(store) {
+  const row = document.createElement("div");
+  row.className = "store-row";
+
+  const info = document.createElement("div");
+  info.className = "store-info";
+
+  const name = document.createElement("strong");
+  name.textContent = store.name;
+
+  const meta = document.createElement("span");
+  meta.className = "store-meta";
+  const parts = [`${store.distanceKm} km`];
+  if (store.phone) parts.push(store.phone);
+  meta.textContent = parts.join(" · ");
+
+  info.append(name, meta);
+
+  const badge = document.createElement("span");
+  badge.className = "badge muted";
+  badge.textContent = store.website ? "Checking…" : "No website listed";
+
+  row.append(info, badge);
+  return { row, badge };
+}
+
+async function scanStores() {
+  const location = getLocation();
+  const status = document.getElementById("location-status");
+  if (!location) {
+    status.textContent = "Set your location first (Use My Location above).";
+    status.classList.add("error");
+    return;
+  }
+  if (!currentBook) return;
+
+  const list = document.getElementById("store-list");
+  list.innerHTML = '<p class="status">Finding bookstores near you…</p>';
+
+  let stores;
+  try {
+    const res = await fetch(
+      `/api/stores?lat=${location.latitude}&lon=${location.longitude}&radius_km=${getDistanceKm()}`
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    stores = data.stores;
+  } catch (error) {
+    list.innerHTML = `<p class="status error">Store lookup failed: ${error.message}</p>`;
+    return;
+  }
+
+  if (!stores.length) {
+    list.innerHTML =
+      '<p class="status">No bookstores found in OpenStreetMap within your search radius.</p>';
+    return;
+  }
+
+  list.innerHTML = "";
+  const checks = stores.map((store) => {
+    const { row, badge } = storeRow(store);
+    list.appendChild(row);
+    if (!store.website) return Promise.resolve();
+
+    const params = new URLSearchParams({
+      website: store.website,
+      isbn: currentBook.productCode,
+      title: currentBook.title || "",
+    });
+    return fetch(`/api/availability?${params}`)
+      .then((res) => res.json())
+      .then((result) => {
+        const label = STATUS_LABELS[result.status] || STATUS_LABELS.unknown;
+        badge.textContent = label.text;
+        badge.className = `badge ${label.cls}`;
+        if (result.url && result.status !== "unknown" && result.status !== "not_found") {
+          const link = document.createElement("a");
+          link.href = result.url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.textContent = badge.textContent + " ↗";
+          if (result.note) link.title = result.note;
+          badge.textContent = "";
+          badge.appendChild(link);
+        }
+      })
+      .catch(() => {
+        badge.textContent = STATUS_LABELS.unknown.text;
+        badge.className = "badge muted";
+      });
+  });
+
+  await Promise.allSettled(checks);
+}
+
+document.getElementById("scan-stores").addEventListener("click", scanStores);
 
 // ---- init -------------------------------------------------
 

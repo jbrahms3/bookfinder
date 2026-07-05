@@ -20,10 +20,34 @@ bookstore via BookManager's Shop Local widget/API.
    `https://bookmanager.com/public/api/tbm-shop-local.js`, exactly the
    way BookManager's own embed snippet works.
 
-The frontend itself is entirely static HTML/CSS/JS. [server.js](server.js)
-is a tiny dependency-free Node static file server, included only so
-Railway (or any Node host) has a process to run — it doesn't do anything
-app-specific.
+## Nearby store website scan (works with any inventory system)
+
+Besides the BookManager widget, the availability panel has a **Scan
+nearby stores** button that checks stores' own public websites — so it
+works regardless of which POS/inventory system a store uses:
+
+1. `GET /api/stores` finds bookstores near you via OpenStreetMap's
+   Overpass API (free, no API key) — name, distance, website, phone.
+2. `GET /api/availability` checks each store's website for the book,
+   using platform adapters in order:
+   - **Shopify** — public `search/suggest.json`; tries the ISBN, then
+     falls back to a fuzzy title match (flagged "edition may differ")
+     since most stores don't index ISBNs in searchable fields.
+   - **IndieCommerce/IndieLite** (ABA) — fetches `/book/{isbn}` and reads
+     the standard availability phrases ("On Our Shelves Now", etc.).
+   - **Generic** — tries common storefront search URLs and looks for the
+     ISBN in the results page.
+3. Each store gets a status badge: In stock / Out of stock / Listed on
+   site / Not on their site / Couldn't check / No website listed.
+
+Caveats: store coverage depends on OpenStreetMap data (missing stores
+can be added at openstreetmap.org); stores without a website tag show
+their phone number instead; "Listed" from the generic adapter means the
+book is on their site but stock couldn't be confirmed.
+
+[server.js](server.js) is dependency-free Node — it serves the static
+frontend and implements the two API endpoints above (with per-request
+timeouts, an SSRF guard, and short-lived caching of store lookups).
 
 ## Run locally
 

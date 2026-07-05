@@ -255,3 +255,93 @@ footer {
   color: var(--muted);
   padding: 20px;
 }
+
+#store-scan {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+#store-scan h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.scan-note {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#scan-stores {
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+#scan-stores:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.store-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.store-row:last-child {
+  border-bottom: none;
+}
+
+.store-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.store-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.badge.ok {
+  background: #dcefe4;
+  color: #1e5238;
+}
+
+.badge.bad {
+  background: #f6dedb;
+  color: #8c2d24;
+}
+
+.badge.maybe {
+  background: #f4ecd6;
+  color: #7a5d12;
+}
+
+.badge.muted {
+  background: #ececea;
+  color: var(--muted);
+}
