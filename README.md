@@ -41,13 +41,26 @@ works regardless of which POS/inventory system a store uses:
      the standard availability phrases ("On Our Shelves Now", etc.).
    - **Generic** — tries common storefront search URLs and looks for the
      ISBN in the results page.
-3. Each store gets a status badge: In stock / Out of stock / Listed on
-   site / Not on their site / Couldn't check / No website listed.
+3. Each store gets an honest status badge:
+   - **In stock / Out of stock / Listed** — the adapter read the store's site.
+   - **Uses BookManager — see Shop Local above** — the store runs a
+     BookManager webstore (inventory is rendered client-side and can't be
+     scraped); those stores are exactly what the Shop Local widget covers,
+     so check there instead.
+   - **Site blocks automated checks** — the store's site returned 403/blocked
+     (common with Cloudflare/WAF bot protection).
+   - **Couldn't reach / too slow** — network error or timeout.
+   - **Not on their site** — site was reachable but no adapter found the book.
+   - **No website listed** — OpenStreetMap has no website for that store.
 
-Caveats: store coverage depends on OpenStreetMap data (missing stores
-can be added at openstreetmap.org); stores without a website tag show
-their phone number instead; "Listed" from the generic adapter means the
-book is on their site but stock couldn't be confirmed.
+Caveats and reality check: this works best for stores on Shopify,
+IndieCommerce, or simple search-page storefronts. Many independents either
+(a) have no website in OpenStreetMap, (b) run BookManager webstores — use
+the Shop Local widget for those, or (c) sit behind bot protection that
+blocks any server-side check. Because checks run server-side, a
+datacenter/cloud host (e.g. Railway) is more likely to be blocked by store
+WAFs than requests from a home IP — so expect more "Site blocks automated
+checks" results in production than in local testing.
 
 [server.js](server.js) is dependency-free Node — it serves the static
 frontend and implements the two API endpoints above (with per-request

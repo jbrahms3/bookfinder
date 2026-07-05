@@ -74,7 +74,13 @@ async function fetchWithTimeout(url, options = {}, ms = 8000) {
       redirect: "follow",
       ...options,
       signal: controller.signal,
-      headers: { "User-Agent": USER_AGENT, ...(options.headers || {}) },
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        ...(options.headers || {}),
+      },
     });
   } finally {
     clearTimeout(timer);
@@ -357,6 +363,41 @@ async function checkGeneric(origin, isbn) {
   return null;
 }
 
+// When no adapter matched, fetch the homepage once to explain WHY rather
+// than reporting a vague "couldn't check": is the site blocking us, down,
+// or a BookManager webstore (which the Shop Local widget already covers)?
+async function diagnoseOrigin(origin) {
+  let res;
+  try {
+    res = await fetchWithTimeout(origin, {}, 8000);
+  } catch (err) {
+    return {
+      platform: null,
+      status: err.name === "AbortError" ? "timeout" : "unreachable",
+      url: origin,
+    };
+  }
+
+  if ([401, 403, 429, 503].includes(res.status) || /\/blocked\b/i.test(res.url || "")) {
+    return { platform: null, status: "blocked", url: origin };
+  }
+
+  let html = "";
+  try {
+    html = (await res.text()).slice(0, 200000);
+  } catch {
+    /* ignore body read errors */
+  }
+
+  // BookManager-powered storefronts render inventory client-side and are
+  // the Shop Local widget's job — flag them rather than pretend to scrape.
+  if (/\bbookmanager\.com\b|cdn\d*\.bookmanager\.com/i.test(html)) {
+    return { platform: "bookmanager", status: "bookmanager", url: origin };
+  }
+
+  return { platform: null, status: "not_found", url: origin };
+}
+
 async function handleAvailability(query, res) {
   const website = query.get("website") || "";
   const isbn = (query.get("isbn") || "").replace(/[^0-9Xx]/g, "");
@@ -378,7 +419,7 @@ async function handleAvailability(query, res) {
       (await checkGeneric(origin, isbn));
 
     if (result) return sendJSON(res, 200, result);
-    return sendJSON(res, 200, { platform: null, status: "unknown", url: origin });
+    return sendJSON(res, 200, await diagnoseOrigin(origin));
   } catch (err) {
     return sendJSON(res, 200, {
       platform: null,

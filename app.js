@@ -309,6 +309,10 @@ const STATUS_LABELS = {
   listed: { text: "Listed on site", cls: "maybe" },
   listed_unknown: { text: "Listed — stock unclear", cls: "maybe" },
   not_found: { text: "Not on their site", cls: "muted" },
+  bookmanager: { text: "Uses BookManager — see Shop Local above", cls: "info" },
+  blocked: { text: "Site blocks automated checks", cls: "muted" },
+  timeout: { text: "Site too slow to check", cls: "muted" },
+  unreachable: { text: "Couldn't reach site", cls: "muted" },
   unknown: { text: "Couldn't check site", cls: "muted" },
 };
 
@@ -397,7 +401,8 @@ async function scanStores(includeChains = false) {
         const label = STATUS_LABELS[result.status] || STATUS_LABELS.unknown;
         badge.textContent = label.text;
         badge.className = `badge ${label.cls}`;
-        if (result.url && result.status !== "unknown" && result.status !== "not_found") {
+        const LINKABLE = ["in_stock", "out_of_stock", "listed", "listed_unknown"];
+        if (result.url && LINKABLE.includes(result.status)) {
           const link = document.createElement("a");
           link.href = result.url;
           link.target = "_blank";

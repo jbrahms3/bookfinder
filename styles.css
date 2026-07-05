@@ -355,3 +355,8 @@ footer {
   background: #ececea;
   color: var(--muted);
 }
+
+.badge.info {
+  background: #dce8f2;
+  color: #1d4e6b;
+}
